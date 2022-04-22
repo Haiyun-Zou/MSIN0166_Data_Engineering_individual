@@ -1,0 +1,5 @@
+ML:
+  split: 0.20
+  seed: 42
+  shuffle: True
+  n_components: 10

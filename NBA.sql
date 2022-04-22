@@ -22,7 +22,7 @@ CREATE TABLE NBA.players(
   "team_code" varchar references NBA.teams("team_code"),
   "birth_year" int,
   "age" int,
-  "number" varchar,
+  "number" int,
   "possition" varchar,
   "guaranteed" int,
   "height" float,

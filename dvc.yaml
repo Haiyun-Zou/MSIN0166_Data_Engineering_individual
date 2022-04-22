@@ -1,0 +1,12 @@
+stages:
+  ML:
+    cmd: python python_files/ml.py
+    params:
+    - ML.seed
+    - ML.split
+    - ML.shuffle
+    - ML.n_components
+    metrics:
+    - scores.json
+    outs:
+    - ml.txt

@@ -35,15 +35,15 @@ for t in team_df.team:
     exp = re.findall(r'data-stat="years_experience">(.*)</td><td class', soup_body)
     list_team = [t for i in range(len(no))]
     playoff = team_df[team_df['team'] == t]['in_playoff'].values[0]
-    list_playoff_t = [playoff for i in range(len(no))] 
-    players = players.append(pd.DataFrame({'team': list_team,'playoff': list_playoff_t, 'name': [i[1] for i in link_name], 'link': [i[0] for i in link_name], 'No.': no, 'pos': pos, 'height': height, 'weight': weight, 'birth':birth, 'exp': exp})).reset_index(drop=True)
-
+    list_playoff_t = [playoff for i in range(len(no))]
+    is_eastern = [1 if 'Eastern' in re.findall(r'>NBA</a> \n(.*)\n', soup_body)[0] else 0 for i in range(len(no))]
+    
+    players = players.append(pd.DataFrame({'team': list_team,'playoff': list_playoff_t, 'name': [i[1] for i in link_name], 'link': [i[0] for i in link_name], 'No.': no, 'pos': pos, 'height': height, 'weight': weight, 'birth':[int(i[:4]) for i in birth], 'exp': exp, 'is_eastern':is_eastern})).reset_index(drop=True)
 # convert the experience information with 'R' to 0.5 and convert the data type into float64
 players['exp'] = players['exp'].replace('R', 0.5)
 players['exp'] = players['exp'].astype(np.float64)
 
 # temporary lists for all the players' information
-temp_twitter_account = []
 temp_in_season = []
 temp_list_2122 = []
 temp_list_career = []
@@ -55,22 +55,38 @@ for count,l in enumerate(players.link):
     soup = BeautifulSoup(page.content, "html.parser")
     soup_body = str(soup.body)
     
-    temp_twitter_account.append(re.findall(r'<a href="https://twitter.com/(.*)">', soup_body))
     
     temp_in_season.append('gamelog/2022' in soup_body)
     temp_list_2122.append(re.findall(fr'{l[1:-5]}/gamelog/2022">(.*?)</td></tr> ', soup_body))
     temp_list_career.append(re.findall(r'</tbody><tfoot><tr><th class="left" data-stat="season" scope="row">Career(.*?)</td></tr>', soup_body))
 # add the columns into the players data frame
-players['twitter_account'] = temp_twitter_account
 players['in_2021_22_season'] = temp_in_season
 players['2021_2022_season'] = temp_list_2122
 players['career'] = temp_list_career
 
+temp_dict = {}
+# loop through the teams and get each player's guarantee
+for t in team_df.team:
+    
+    URL =f"https://www.basketball-reference.com/contracts/{t}.html"
+    page = requests.get(URL)
+    soup = BeautifulSoup(page.content, "html.parser")
+    soup_body = str(soup.body)
+    for i in re.findall(r'data-stat="player"(.*)</td></tr>', soup_body):
+        if '.html">' in i and 'scope="row"><em>' not in i:
+            temp_dict[re.findall(r'html">(.*)</a>', i)[0]] = re.findall(r'data-stat="remain_gtd">\$(.*)', i)
+players = players.merge(pd.DataFrame({'name': temp_dict.keys(), 'guaranteed': temp_dict.values()}), how = 'left', on = 'name')
+
+# fill all na
+players = players.replace((np.inf, -np.inf, np.nan), '0').reset_index(drop = True)
+
+# convert the list into int
+players['guaranteed'] = players['guaranteed'].apply(lambda x: int(x[0].replace(',','')) if len(x)>0 else 0)
+
 # get the age of each player by 2022-birth year
-players['age'] = players['birth'].apply(lambda x: 2022 - int(x[:4]))
+players['age'] = players['birth'].apply(lambda x: 2022 - int(x))
 
 # fill the empty information 
-players['twitter_account'] = players['twitter_account'].apply(lambda x: x[0] if len(x) > 0 else '')
 players['2021_2022_season'] = players['2021_2022_season'].apply(lambda x: x[0] if len(x) > 0 else '')
 players['career'] = players['career'].apply(lambda x: x[0] if len(x) > 0 else '')
 
