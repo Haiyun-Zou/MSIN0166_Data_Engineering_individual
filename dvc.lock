@@ -1,0 +1,6 @@
+schema: '2.0'
+stages:
+  team:
+    cmd: python python_files/teams_data.py
+  players:
+    cmd: python python_files/players_data.py

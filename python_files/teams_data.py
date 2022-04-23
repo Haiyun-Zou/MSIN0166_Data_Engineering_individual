@@ -6,6 +6,7 @@ import re
 import os
 import requests
 from datetime import datetime
+np.random.seed(42)
 
 # set up the spark envrionment
 os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-8-openjdk-amd64"
@@ -14,6 +15,7 @@ os.environ["SPARK_HOME"] = "/project/spark-3.2.1-bin-hadoop3.2"
 # import spark
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("PySpark App").config("spark.jars", "postgresql-42.3.2.jar").getOrCreate()
+spark.conf.set("spark.sql.parquet.enableVectorizedReader","false")
 
 # using BeautifulSoup to get the web page information
 URL ="https://www.basketball-reference.com/"
@@ -25,7 +27,7 @@ soup_body = str(soup.body)
 list_info = re.findall(r'data-stat="payroll_text">(.*)</td></tr>', soup_body)
 
 # set the team code and their full name into a dictionary
-dict_info = {i[20:23]:[re.findall(r'title="(.*) Team Payroll', i)[0], re.findall(r'data-stat="wins">(.*)</', i)[0], re.findall(r'data-stat="losses">(.*)', i)[0]] for i in list_info}
+dict_info = {i[20:23]:[re.findall(r'title="(.*) Team Payroll', i)[0], int(re.findall(r'data-stat="wins">(.*)</', i)[0]), int(re.findall(r'data-stat="losses">(.*)', i)[0])] for i in list_info}
 
 # check the playoff data
 URL ="https://www.basketball-reference.com/playoffs/NBA_2022.html"
@@ -37,7 +39,7 @@ soup_body = str(soup.body)
 list_playoff = [i.split("html'>")[1] for i in re.findall(r'data-stat="team" >(.*?)</a></td><td', soup_body)]
 
 # convert the team data into a data frame
-team_df = pd.DataFrame({'team': dict_info.keys(), 'name': [i[0] for i in dict_info.values()], 'win': [i[1] for i in dict_info.values()], 'loss': [i[2] for i in dict_info.values()]})
+team_df = pd.DataFrame({'team': dict_info.keys(), 'name': [i[0] for i in dict_info.values()], 'win': [int(i[1]) for i in dict_info.values()], 'loss': [int(i[2]) for i in dict_info.values()]})
 
 # match all the playoff information with the data frame
 list_in_playoff = [1 if i in list_playoff else 0 for i in team_df.name]

@@ -6,6 +6,7 @@ import re
 import os
 import requests
 from datetime import datetime
+np.random.seed(42)
 
 # set up the spark envrionment
 os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-8-openjdk-amd64"
@@ -14,11 +15,11 @@ os.environ["SPARK_HOME"] = "/project/spark-3.2.1-bin-hadoop3.2"
 # import spark
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("PySpark App").config("spark.jars", "postgresql-42.3.2.jar").getOrCreate()
-
+spark.conf.set("spark.sql.parquet.enableVectorizedReader","false")
 
 # load the data
-teams = spark.read.parquet("/project/MSIN0166_Data_Engineering_individual/parquet_files/team.parquet").toPandas()
-players = spark.read.parquet("/project/MSIN0166_Data_Engineering_individual/parquet_files/players.parquet").toPandas()
+teams =  spark.read.parque("/project/MSIN0166_Data_Engineering_individual/parquet_files/team.parquet").toPandas()
+players =  spark.read.parque("/project/MSIN0166_Data_Engineering_individual/parquet_files/players.parquet").toPandas()
 
 # get all the team_code and thier conference area
 dict_team = {i:j for i,j in zip(players['team'], players['is_eastern'])}

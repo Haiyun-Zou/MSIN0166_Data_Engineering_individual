@@ -6,6 +6,9 @@ import re
 import os
 import requests
 from datetime import datetime
+from IPython.display import Image
+import matplotlib.pyplot as plt
+np.random.seed(42)
 
 # set up the spark envrionment
 os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-8-openjdk-amd64"
@@ -14,6 +17,7 @@ os.environ["SPARK_HOME"] = "/project/spark-3.2.1-bin-hadoop3.2"
 # import spark
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("PySpark App").config("spark.jars", "postgresql-42.3.2.jar").getOrCreate()
+spark.conf.set("spark.sql.parquet.enableVectorizedReader","false")
 
 # load the data from parquet file
 players = spark.read.parquet("/project/MSIN0166_Data_Engineering_individual/parquet_files/players.parquet").toPandas()
@@ -28,8 +32,10 @@ for c in dummies_df.columns:
 # convert from True/False to 1/0
 players['in_2021_22_season'] = players['in_2021_22_season'].replace({True:1, False:0})
 
+players = players.sort_values('name')
+
 # drop the columns that are not used for machine learning
-players = players.drop(['2021_2022_season', 'career', 'team', 'name', 'link', 'pos', 'No.'], axis = 1)
+players = players.drop([ 'team', 'name', 'link', 'pos', 'No.'], axis = 1)
 
 import yaml
 from sklearn.model_selection import train_test_split
@@ -61,6 +67,7 @@ players_pca_train= pca_train.transform(X_train)
 players_pca_test= pca_test.transform(X_test)
 
 sum(pca_train.explained_variance_ratio_)
+
 
 # plot the PCA variation
 plt.figure(figsize = (8,5))

@@ -6,6 +6,7 @@ import re
 import os
 import requests
 from datetime import datetime
+np.random.seed(42)
 
 # set up the spark envrionment
 os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-8-openjdk-amd64"
@@ -14,10 +15,13 @@ os.environ["SPARK_HOME"] = "/project/spark-3.2.1-bin-hadoop3.2"
 # import spark
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("PySpark App").config("spark.jars", "postgresql-42.3.2.jar").getOrCreate()
+spark.conf.set("spark.sql.parquet.enableVectorizedReader","false")
 
+# read the parquet file for team df
+team_df = spark.read.parquet("/project/MSIN0166_Data_Engineering_individual/parquet_files/team.parquet").toPandas()
 
 # create a data frame to store each player's information
-players = pd.DataFrame(columns = ['name', 'link','twitter_account', 'No.', 'pos', 'height', 'weight', 'birth', 'age'])
+players = pd.DataFrame(columns = ['name', 'link','is_eastern', 'No.', 'pos', 'height', 'weight', 'birth', 'age'])
 
 # loop through each team page and get all the players in each team and their related information
 for t in team_df.team:
@@ -35,10 +39,11 @@ for t in team_df.team:
     exp = re.findall(r'data-stat="years_experience">(.*)</td><td class', soup_body)
     list_team = [t for i in range(len(no))]
     playoff = team_df[team_df['team'] == t]['in_playoff'].values[0]
-    list_playoff_t = [playoff for i in range(len(no))]
+    list_playoff_t = [int(playoff) for i in range(len(no))]
     is_eastern = [1 if 'Eastern' in re.findall(r'>NBA</a> \n(.*)\n', soup_body)[0] else 0 for i in range(len(no))]
     
     players = players.append(pd.DataFrame({'team': list_team,'playoff': list_playoff_t, 'name': [i[1] for i in link_name], 'link': [i[0] for i in link_name], 'No.': no, 'pos': pos, 'height': height, 'weight': weight, 'birth':[int(i[:4]) for i in birth], 'exp': exp, 'is_eastern':is_eastern})).reset_index(drop=True)
+
 # convert the experience information with 'R' to 0.5 and convert the data type into float64
 players['exp'] = players['exp'].replace('R', 0.5)
 players['exp'] = players['exp'].astype(np.float64)
@@ -87,8 +92,8 @@ players['guaranteed'] = players['guaranteed'].apply(lambda x: int(x[0].replace('
 players['age'] = players['birth'].apply(lambda x: 2022 - int(x))
 
 # fill the empty information 
-players['2021_2022_season'] = players['2021_2022_season'].apply(lambda x: x[0] if len(x) > 0 else '')
-players['career'] = players['career'].apply(lambda x: x[0] if len(x) > 0 else '')
+players['2021_2022_season'] = players['2021_2022_season'].apply(lambda x: x[0] if len(x) > 0 else '0')
+players['career'] = players['career'].apply(lambda x: x[0] if len(x) > 0 else '0')
 
 def get_info(pattern, list_info):
     '''
@@ -96,7 +101,7 @@ def get_info(pattern, list_info):
     '''
     temp_list = []
     for count, i in enumerate(list_info):
-        if i!='':
+        if i!='0':
             result = re.findall(pattern, i)[0]
             if 'strong' in result:
                 result = result.replace('strong','').replace('/','').replace('<','').replace('>','')
@@ -175,6 +180,9 @@ players['PF_career'] = get_info((r'data-stat="pf_per_g">(.*?)</td'), players['ca
 players['PF_career'] = players['PF_career'].astype(np.float64)
 players['PTS_career'] = get_info((r'data-stat="pts_per_g">(.*)'), players['career'])
 players['PTS_career'] = players['PTS_career'].astype(np.float64)
+
+# drop the full information column
+players = players.drop(['2021_2022_season', 'career'], axis = 1)
 
 # convert the players data into spark data frame
 players_df = spark.createDataFrame(players)
