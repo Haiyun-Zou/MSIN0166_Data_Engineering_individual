@@ -138,6 +138,10 @@ ada_score = ada.score(X_test, y_test)
 
 print('Decision Tree: ',dt_score, '\nRandomForest: ', rf_score, '\nGradientBoosting: ', gbc_score, '\nAdaBoost: ', ada_score)
 
+import json
+with open('/project/MSIN0166_Data_Engineering_individual/scores.json', "w") as fd:
+    json.dump({"Decision_Tree_score": dt_score, 'Random_Forest_score':rf_score, 'Gradient_Boosting_score':gbc_score, 'Ada_Boost_score':ada_score}, fd, indent=4)
+
 print(classification_report(y_test, ada.predict(X_test)))
 
 from sklearn.model_selection import RandomizedSearchCV

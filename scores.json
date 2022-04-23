@@ -1,0 +1,6 @@
+{
+    "Decision_Tree_score": 0.5784313725490197,
+    "Random_Forest_score": 0.4411764705882353,
+    "Gradient_Boosting_score": 0.4803921568627451,
+    "Ada_Boost_score": 0.5
+}
