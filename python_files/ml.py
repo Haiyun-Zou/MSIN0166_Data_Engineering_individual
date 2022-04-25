@@ -43,11 +43,14 @@ params = yaml.safe_load(open("/project/MSIN0166_Data_Engineering_individual/para
 
 print(params)
 
-# create spark df
-players_df  = spark.createDataFrame(players)
-
+from sklearn.model_selection import train_test_split
 # split the train and test sets
-players_train, players_test  = players_df.randomSplit([1-params['split'],params['split']],seed=params['seed'])
+players_train, players_test = train_test_split(players, test_size = params['split'], shuffle = params['shuffle'], random_state = params['seed'])
+
+# create spark df
+players_train  = spark.createDataFrame(players_train)
+players_test  = spark.createDataFrame(players_test)
+
 
 # select columns for pca
 players_train_trans = players_train.select(players_train.columns[9:-5])
@@ -116,14 +119,14 @@ assemblers = VectorAssembler(inputCols= ['G_2122_scaled',
 
 # transform the training data and return the PCA result in the column of PCA_features
 X_train_v = assemblers.transform(X_train)
-PCA_train = PCA(k = 10, inputCol="features", outputCol = 'PCA_features')
+PCA_train = PCA(k = params['n_components'] , inputCol="features", outputCol = 'PCA_features')
 
 X_train_model = PCA_train.fit(X_train_v)
 X_train = X_train_model.transform(X_train_v)
 
 # transform the testing data and return the PCA result in the column of PCA_features
 X_test_v = assemblers.transform(X_test)
-PCA_test = PCA(k = 10, inputCol="features", outputCol = 'PCA_features')
+PCA_test = PCA(k = params['n_components'] , inputCol="features", outputCol = 'PCA_features')
 
 X_test_model = PCA_test.fit(X_test_v)
 X_test = X_test_model.transform(X_test_v)
@@ -146,8 +149,8 @@ players_train_first = players_train.select(list(set(players_train.columns[:9]) |
 players_test_first = players_test.select(list(set(players_test.columns[:9]) | set(players_test.columns[-5:])))
 
 # convert the PCA result column into data frame
-temp_train = X_train.select('PCA_features').rdd.map(lambda x: [float(i) for i in x['PCA_features']]).toDF(['PCA' + str(i+1) for i in range(10)])
-temp_test = X_test.select('PCA_features').rdd.map(lambda x: [float(i) for i in x['PCA_features']]).toDF(['PCA' + str(i+1) for i in range(10)])
+temp_train = X_train.select('PCA_features').rdd.map(lambda x: [float(i) for i in x['PCA_features']]).toDF(['PCA' + str(i+1) for i in range(params['n_components'])])
+temp_test = X_test.select('PCA_features').rdd.map(lambda x: [float(i) for i in x['PCA_features']]).toDF(['PCA' + str(i+1) for i in range(params['n_components'])])])
 
 # convert back to pandas
 players_train_first_pd = players_train_first.toPandas()
