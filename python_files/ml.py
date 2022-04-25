@@ -81,7 +81,7 @@ X_test = X_test.transform(players_test_trans)
 
 from pyspark.ml.feature import PCA
 # assemble the columns into features column
-assemblers = VectorAssembler(inputCols= [i for i in  X_train.columns], outputCol="features")
+assemblers = VectorAssembler(inputCols= [i for i in  X_train.columns if  '_scaled' in i], outputCol="features")
 
 # transform the training data and return the PCA result in the column of PCA_features
 X_train_v = assemblers.transform(X_train)
@@ -137,7 +137,7 @@ players_test_final = spark.createDataFrame(players_test_first_pd)
 from pyspark.ml.classification import DecisionTreeClassifier
 
 # assemble all the X columns into features
-assembler = VectorAssembler(inputCols =[i for i in players_train_final.columns] , outputCol='features')
+assembler = VectorAssembler(inputCols =[i for i in players_train_final.columns if i != 'playoff'] , outputCol='features')
 
 # transform the train and test data
 players_train_final = assembler.transform(players_train_final)
@@ -155,7 +155,7 @@ clf_dt = clf_dt.fit(players_train_final)
 pred_clf_dt = clf_dt.transform(players_test_final)
 
 # convert the importance into a data frame
-importance = pd.DataFrame({'feature': players_test_final.columns, 'importance':clf_dt.featureImportances.toArray()})
+importance = pd.DataFrame({'feature': [i for i in players_train_final.columns[:-1] if i != 'label'], 'importance':clf_dt.featureImportances.toArray()})
 
 # order the data frame by its importance in descending order and print the head 10
 print(importance.sort_values('importance', ascending = False).head(10))
