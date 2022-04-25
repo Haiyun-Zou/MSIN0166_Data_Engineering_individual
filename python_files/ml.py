@@ -79,43 +79,9 @@ pipeline = Pipeline(stages= assemblers + scaler)
 X_test = pipeline.fit(players_test_trans)
 X_test = X_test.transform(players_test_trans)
 
-# get the scaled columns
-columns = [i for i in X_train.columns if 'scaled' in i]
-
 from pyspark.ml.feature import PCA
 # assemble the columns into features column
-assemblers = VectorAssembler(inputCols= ['G_2122_scaled',
- 'GS_2122_scaled',
- 'MP_2122_scaled',
- 'FG%_2122_scaled',
- '3P%_2122_scaled',
- '2P%_2122_scaled',
- 'eFG%_2122_scaled',
- 'FT%_2122_scaled',
- 'ORB_2122_scaled',
- 'DRB_2122_scaled',
- 'AST_2122_scaled',
- 'STL_2122_scaled',
- 'BLK_2122_scaled',
- 'TOV_2122_scaled',
- 'PF_2122_scaled',
- 'PTS_2122_scaled',
- 'G_career_scaled',
- 'GS_career_scaled',
- 'MP_career_scaled',
- 'FG%_career_scaled',
- '3P%_career_scaled',
- '2P%_career_scaled',
- 'eFG%_career_scaled',
- 'FT%_career_scaled',
- 'ORB_career_scaled',
- 'DRB_career_scaled',
- 'AST_career_scaled',
- 'STL_career_scaled',
- 'BLK_career_scaled',
- 'TOV_career_scaled',
- 'PF_career_scaled',
- 'PTS_career_scaled'], outputCol="features")
+assemblers = VectorAssembler(inputCols= [i for i in  X_train.columns], outputCol="features")
 
 # transform the training data and return the PCA result in the column of PCA_features
 X_train_v = assemblers.transform(X_train)
@@ -150,7 +116,7 @@ players_test_first = players_test.select(list(set(players_test.columns[:9]) | se
 
 # convert the PCA result column into data frame
 temp_train = X_train.select('PCA_features').rdd.map(lambda x: [float(i) for i in x['PCA_features']]).toDF(['PCA' + str(i+1) for i in range(params['n_components'])])
-temp_test = X_test.select('PCA_features').rdd.map(lambda x: [float(i) for i in x['PCA_features']]).toDF(['PCA' + str(i+1) for i in range(params['n_components'])])])
+temp_test = X_test.select('PCA_features').rdd.map(lambda x: [float(i) for i in x['PCA_features']]).toDF(['PCA' + str(i+1) for i in range(params['n_components'])])
 
 # convert back to pandas
 players_train_first_pd = players_train_first.toPandas()
@@ -171,29 +137,7 @@ players_test_final = spark.createDataFrame(players_test_first_pd)
 from pyspark.ml.classification import DecisionTreeClassifier
 
 # assemble all the X columns into features
-assembler = VectorAssembler(inputCols =['is_PG',
- 'is_SF',
- 'is_SG',
- 'is_eastern',
- 'height',
- 'guaranteed',
- 'is_PF',
- 'age',
- 'birth',
- 'is_C',
- 'weight',
- 'in_2021_22_season',
- 'exp',
- 'PCA1',
- 'PCA2',
- 'PCA3',
- 'PCA4',
- 'PCA5',
- 'PCA6',
- 'PCA7',
- 'PCA8',
- 'PCA9',
- 'PCA10'] , outputCol='features')
+assembler = VectorAssembler(inputCols =[i for i in players_train_final.columns] , outputCol='features')
 
 # transform the train and test data
 players_train_final = assembler.transform(players_train_final)
@@ -209,6 +153,12 @@ print(players_train_final.toPandas().shape)
 clf_dt= DecisionTreeClassifier(featuresCol="features", labelCol="label")
 clf_dt = clf_dt.fit(players_train_final)
 pred_clf_dt = clf_dt.transform(players_test_final)
+
+# convert the importance into a data frame
+importance = pd.DataFrame({'feature': players_test_final.columns, 'importance':clf_dt.featureImportances.toArray()})
+
+# order the data frame by its importance in descending order and print the head 10
+print(importance.sort_values('importance', ascending = False).head(10))
 
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 # evaluate the model
