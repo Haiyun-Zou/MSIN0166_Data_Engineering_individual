@@ -4,3 +4,15 @@ stages:
     cmd: python python_files/teams_data.py
   players:
     cmd: python python_files/players_data.py
+  ML:
+    cmd: python python_files/ml.py
+    params:
+      params.yaml:
+        ML.n_components: 10
+        ML.seed: 42
+        ML.shuffle: true
+        ML.split: 0.2
+    outs:
+    - path: scores.json
+      md5: f4bc73dbb3b5d32d5e3339787f534555
+      size: 107

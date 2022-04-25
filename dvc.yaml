@@ -12,3 +12,7 @@ stages:
     - ML.n_components
     metrics:
     - /project/MSIN0166_Data_Engineering_individual/scores.json
+  data_transformation:
+    cmd: python python_files/data_transformation.py
+  write_into_database:
+    cmd: python python_files/write_into_database.py

@@ -9,6 +9,7 @@ from datetime import datetime
 from IPython.display import Image
 import matplotlib.pyplot as plt
 
+np.random.seed(42)
 # set up the spark envrionment
 os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-8-openjdk-amd64"
 os.environ["SPARK_HOME"] = "/project/spark-3.2.1-bin-hadoop3.2"
@@ -31,7 +32,7 @@ for c in dummies_df.columns:
 # convert from True/False to 1/0
 players['in_2021_22_season'] = players['in_2021_22_season'].replace({True:1, False:0})
 
-players = players.sort_values('name')
+players = players.sort_values('name').reset_index(drop=True)
 
 # drop the columns that are not used for machine learning
 players = players.drop([ 'team', 'name', 'link', 'pos', 'No.'], axis = 1)
