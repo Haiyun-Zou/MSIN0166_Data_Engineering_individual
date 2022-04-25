@@ -12,5 +12,3 @@ stages:
     - ML.n_components
     metrics:
     - /project/MSIN0166_Data_Engineering_individual/scores.json
-    outs:
-    - ml.txt

@@ -1,6 +1,6 @@
 {
-    "Decision_Tree_score": 0.5784313725490197,
-    "Random_Forest_score": 0.4411764705882353,
-    "Gradient_Boosting_score": 0.4803921568627451,
-    "Ada_Boost_score": 0.5
+    "Accuract": 0.58,
+    "Precision": 0.5652173913043478,
+    "Recall": 0.5416666666666666,
+    "F1_Score": 0.5531914893617021
 }
