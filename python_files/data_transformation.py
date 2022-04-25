@@ -41,8 +41,8 @@ current_season_result = players[['link', 'G_2122', 'GS_2122','MP_2122', 'FG%_212
 current_career_result = players[['link', 'G_career', 'GS_career','MP_career', 'FG%_career', '3P%_career', '2P%_career', 'eFG%_career', 'FT%_career', 'ORB_career', 'DRB_career', 'AST_career', 'STL_career', 'BLK_career', 'TOV_career', 'PF_career', 'PTS_career']]
 
 # convert the columns name
-current_season_result.columns = ['id', 'G', 'GS','MP', 'FGperc', '3Pperc', '2Pperc', 'eFGperc', 'FTperc', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
-current_career_result.columns = ['id', 'G', 'GS','MP', 'FGperc', '3Pperc', '2Pperc', 'eFGperc', 'FTperc', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']
+current_season_result.columns = [i.lower() for i in ['id', 'G', 'GS','MP', 'FGperc', '3Pperc', '2Pperc', 'eFGperc', 'FTperc', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']]
+current_career_result.columns = [i.lower() for i in ['id', 'G', 'GS','MP', 'FGperc', '3Pperc', '2Pperc', 'eFGperc', 'FTperc', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS']]
 
 # convert all the data frame into spark data frame
 teams_t_df = spark.createDataFrame(teams_t)
