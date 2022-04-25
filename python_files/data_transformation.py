@@ -18,8 +18,8 @@ spark = SparkSession.builder.appName("PySpark App").config("spark.jars", "postgr
 spark.conf.set("spark.sql.parquet.enableVectorizedReader","false")
 
 # load the data
-teams =  spark.read.parque("/project/MSIN0166_Data_Engineering_individual/parquet_files/team.parquet").toPandas()
-players =  spark.read.parque("/project/MSIN0166_Data_Engineering_individual/parquet_files/players.parquet").toPandas()
+teams =  spark.read.parquet("/project/MSIN0166_Data_Engineering_individual/parquet_files/team.parquet").toPandas()
+players =  spark.read.parquet("/project/MSIN0166_Data_Engineering_individual/parquet_files/players.parquet").toPandas()
 
 # get all the team_code and thier conference area
 dict_team = {i:j for i,j in zip(players['team'], players['is_eastern'])}

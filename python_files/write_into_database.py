@@ -15,7 +15,7 @@ os.environ["SPARK_HOME"] = "/project/spark-3.2.1-bin-hadoop3.2"
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("PySpark App").config("spark.jars", "postgresql-42.3.2.jar").getOrCreate()
 
-os.system(PGPASSWORD=qwerty123 psql -h depgdb.crhso94tou3n.eu-west-2.rds.amazonaws.com -d haiyunzou21 -U haiyunzou21 -c '\i /project/MSIN0166_Data_Engineering_individual/NBA.sql')
+os.system("PGPASSWORD=qwerty123 psql -h depgdb.crhso94tou3n.eu-west-2.rds.amazonaws.com -d haiyunzou21 -U haiyunzou21 -c '\i /project/MSIN0166_Data_Engineering_individual/NBA.sql'")
 
 # load the data
 teams_t_df = spark.read.parquet("/project/MSIN0166_Data_Engineering_individual/parquet_files/teams_t.parquet")
