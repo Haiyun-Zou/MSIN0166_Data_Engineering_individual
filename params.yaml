@@ -2,4 +2,4 @@ ML:
   split: 0.20
   seed: 42
   shuffle: True
-  n_components: 5
+  n_components: 10

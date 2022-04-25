@@ -14,7 +14,9 @@ stages:
         ML.split: 0.2
     outs:
     - path: scores.json
-      md5: f4bc73dbb3b5d32d5e3339787f534555
-      size: 107
+      md5: dbb8e8d45ad0b447b5b111f9bba3b41c
+      size: 146
   data_transformation:
     cmd: python python_files/data_transformation.py
+  write_into_database:
+    cmd: python python_files/write_into_database.py
