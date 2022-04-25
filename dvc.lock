@@ -16,3 +16,5 @@ stages:
     - path: scores.json
       md5: f4bc73dbb3b5d32d5e3339787f534555
       size: 107
+  data_transformation:
+    cmd: python python_files/data_transformation.py
